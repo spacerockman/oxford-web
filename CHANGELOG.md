@@ -15,7 +15,7 @@
 
 ##### 后端
 - [x] Python MDX 解析脚本 (`scripts/build_db.py`)
-- [x] HTTP 服务 (`server.py`) - 端口 8310
+- [x] HTTP 服务 (`server.py`) - 端口 18310
 - [x] 搜索 API: `GET /api/search?q=word` — 前缀匹配 + 精确优先
 - [x] 查词 API: `GET /api/lookup?word=hello` — 返回完整 HTML
 - [x] 自动补全 API: `GET /api/suggest?q=hel` — 实时建议

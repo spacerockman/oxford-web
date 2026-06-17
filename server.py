@@ -5,7 +5,7 @@ Oxford Dictionary Web Server
 基于 Python 内置 http.server，零依赖。
 提供牛津高阶英汉双解词典的网页查询服务。
 
-端口: 8310（自定义冷门端口）
+端口: 18310（自定义5位冷门端口）
 """
 
 import http.server
@@ -18,7 +18,7 @@ import html as html_mod
 # ============================================================
 # 配置
 # ============================================================
-PORT = 8310
+PORT = 18310
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(PROJECT_ROOT, "data", "oxford.db")
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
