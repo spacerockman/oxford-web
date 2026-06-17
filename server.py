@@ -292,12 +292,24 @@ def main():
     print(f"{'='*50}")
     print(f"   数据库: {DB_PATH}")
     print(f"   数据库大小: {db_size:.1f} MB")
-    print(f"   服务地址: http://localhost:{PORT}")
+    # 获取本机局域网 IP
+    import socket
+    local_ip = "127.0.0.1"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except:
+        pass
+
+    print(f"   本机访问: http://localhost:{PORT}")
+    print(f"   iPhone 访问: http://{local_ip}:{PORT} (需在同一 WiFi 下)")
     print(f"   搜索示例: http://localhost:{PORT}/?q=hello")
     print(f"   按 Ctrl+C 停止服务")
     print(f"{'='*50}\n")
 
-    server = http.server.HTTPServer(('127.0.0.1', PORT), OxfordDictionaryHandler)
+    server = http.server.HTTPServer(('0.0.0.0', PORT), OxfordDictionaryHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

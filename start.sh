@@ -21,7 +21,10 @@ case "${1:-start}" in
         echo "🚀 后台启动牛津词典服务..."
         nohup python3 "$PROJECT_DIR/server.py" > "$LOG_DIR/stdout.log" 2> "$LOG_DIR/stderr.log" &
         echo "PID: $!"
-        echo "服务已后台启动，访问: http://localhost:18310"
+        LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ifconfig en0 | grep "inet " | awk '{print $2}')
+        echo "服务已后台启动"
+        echo "   本机访问: http://localhost:18310"
+        echo "   iPhone 访问: http://${LOCAL_IP:-无法获取IP}:18310"
         ;;
     stop)
         echo "🛑 停止牛津词典服务..."
@@ -36,7 +39,9 @@ case "${1:-start}" in
         PID=$(pgrep -f "python3.*server.py" 2>/dev/null)
         if [ -n "$PID" ]; then
             echo "✅ 服务运行中 (PID: $PID)"
-            echo "   访问: http://localhost:18310"
+            LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ifconfig en0 | grep "inet " | awk '{print $2}')
+            echo "   本机访问: http://localhost:18310"
+            echo "   iPhone 访问: http://${LOCAL_IP:-无法获取IP}:18310"
             curl -s -o /dev/null -w "   API状态: %{http_code}\n" 'http://localhost:18310/api/search?q=test'
         else
             echo "❌ 服务未运行"
