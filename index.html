@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>牛津高阶英汉双解词典（第10版）</title>
+<link rel="stylesheet" type="text/css" href="data/oald10.css">
+<style>
+  /* ===== 全局样式 ===== */
+  *, *::before, *::after { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    min-height: 100vh;
+  }
+
+  /* ===== 顶部搜索栏 ===== */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 12px 20px;
+  }
+
+  .header-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #1d1d1f;
+  }
+  .header-title span {
+    color: #8e8e93;
+    font-weight: 400;
+  }
+
+  .search-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 16px;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .search-input:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+  .search-input::placeholder {
+    color: #aeaeb2;
+  }
+
+  /* ===== 自动补全下拉 ===== */
+  .suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    display: none;
+    max-height: 360px;
+    overflow-y: auto;
+    z-index: 200;
+  }
+  .suggestions.active { display: block; }
+  
+  .suggestion-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+  }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover,
+  .suggestion-item.active {
+    background: #f0f0f5;
+  }
+  .suggestion-item .word { font-weight: 500; }
+  .suggestion-item .hint {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-left: 8px;
+  }
+
+  /* ===== 主内容区 ===== */
+  .main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* ===== 欢迎/空状态 ===== */
+  .welcome {
+    text-align: center;
+    padding: 80px 20px;
+    color: #8e8e93;
+  }
+  .welcome-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+  .welcome h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin: 0 0 8px;
+  }
+  .welcome p {
+    font-size: 15px;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .welcome .shortcuts {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .welcome .shortcut-btn {
+    padding: 6px 16px;
+    background: #e8e8ed;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #1d1d1f;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+  }
+  .welcome .shortcut-btn:hover {
+    background: #d2d2d7;
+  }
+
+  /* ===== 搜索结果 ===== */
+  .result-count {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+  .result-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .result-list li {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.15s;
+    border-radius: 8px;
+  }
+  .result-list li:hover {
+    background: #f0f0f5;
+  }
+  .result-list li .is-link {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-left: 8px;
+  }
+
+  /* ===== 词条展示 ===== */
+  .entry-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 24px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    margin-top: 16px;
+  }
+
+  /* 覆盖原词典样式中的通配符 */
+  .entry-container .entry {
+    margin-left: 0 !important;
+  }
+
+  /* 加载中 */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #8e8e93;
+  }
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e8e8ed;
+    border-top-color: #0071e3;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 错误消息 ===== */
+  .error-msg {
+    text-align: center;
+    padding: 40px;
+    color: #8e8e93;
+  }
+  .error-msg .big {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  /* ===== 链接点击 ===== */
+  .entry-link { cursor: pointer; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 640px) {
+    .header { padding: 10px 12px; }
+    .header-title { font-size: 14px; }
+    .main { padding: 12px; }
+    .entry-container { padding: 16px; border-radius: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部搜索栏 ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-title">牛津词典 <span>第10版</span></div>
+    <div class="search-wrapper">
+      <input type="search" class="search-input" id="searchInput"
+             placeholder="输入单词搜索…" autofocus
+             autocomplete="off" spellcheck="false">
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 主内容 ===== -->
+<main class="main" id="mainContent">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">📖</div>
+    <h2>牛津高阶英汉双解词典（第10版）</h2>
+    <p>在上方搜索框中输入英文单词，即可查看释义、例句和发音。</p>
+    <div class="shortcuts" id="shortcuts"></div>
+  </div>
+</main>
+
+<script src="data/oald10.js"></script>
+<script>
+// ============================================================
+// 牛津词典 Web 版 - 前端逻辑
+// ============================================================
+
+const DOM = {
+  input: document.getElementById('searchInput'),
+  suggestions: document.getElementById('suggestions'),
+  main: document.getElementById('mainContent'),
+};
+
+let currentWord = '';
+let suggestTimer = null;
+let selectedSuggestionIndex = -1;
+
+// ============================================================
+// 搜索与自动补全
+// ============================================================
+
+async function fetchSuggestions(query) {
+  if (!query || query.length < 1) return [];
+  const resp = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
+  const data = await resp.json();
+  return data.suggestions || [];
+}
+
+async function searchWords(query) {
+  if (!query) return [];
+  const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=30`);
+  const data = await resp.json();
+  return data.words || [];
+}
+
+async function lookupWord(word) {
+  const resp = await fetch(`/api/lookup?word=${encodeURIComponent(word)}`);
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error);
+  return data.entry;
+}
+
+// ============================================================
+// 显示自动补全
+// ============================================================
+
+function showSuggestions(suggestions) {
+  const el = DOM.suggestions;
+  if (!suggestions || suggestions.length === 0) {
+    el.classList.remove('active');
+    return;
+  }
+  el.innerHTML = suggestions.map((w, i) =>
+    `<div class="suggestion-item" data-index="${i}" data-word="${escapeHtml(w)}">
+       <span class="word">${escapeHtml(w)}</span>
+     </div>`
+  ).join('');
+  el.classList.add('active');
+  selectedSuggestionIndex = -1;
+}
+
+function hideSuggestions() {
+  DOM.suggestions.classList.remove('active');
+  selectedSuggestionIndex = -1;
+}
+
+// ============================================================
+// 显示内容
+// ============================================================
+
+function showEntry(entry) {
+  DOM.main.innerHTML = '';
+
+  // 显示单词标题
+  const count = document.createElement('div');
+  count.className = 'result-count';
+  count.textContent = entry.word;
+  DOM.main.appendChild(count);
+
+  // 显示词典内容
+  const container = document.createElement('div');
+  container.className = 'entry-container';
+
+  if (entry.html) {
+    // 先设置 HTML，再插入样式
+    container.innerHTML = entry.html;
+
+    // 确保 oald10.css 样式对动态内容生效
+    // 重新处理 entry 中的链接
+    container.querySelectorAll('.entry-link').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = a.getAttribute('href') || '';
+        const match = href.match(/^#lookup=(.+)/);
+        if (match) {
+          DOM.input.value = match[1];
+          doSearch(match[1]);
+        }
+      });
+    });
+
+    // 处理发音按钮
+    container.querySelectorAll('.sound-link').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const soundFile = a.getAttribute('data-sound');
+        if (soundFile) {
+          playSound(soundFile);
+        }
+      });
+    });
+  } else {
+    container.innerHTML = '<p style="color:#8e8e93;text-align:center;padding:20px;">暂无释义内容</p>';
+  }
+
+  DOM.main.appendChild(container);
+
+  // 高亮当前单词
+  highlightEntryWords(entry.word);
+}
+
+function showSearchResults(results, query) {
+  DOM.main.innerHTML = '';
+
+  if (query) {
+    const count = document.createElement('div');
+    count.className = 'result-count';
+    count.textContent = `找到 ${results.length} 个相关词条`;
+    DOM.main.appendChild(count);
+  }
+
+  if (results.length === 0) {
+    const error = document.createElement('div');
+    error.className = 'error-msg';
+    error.innerHTML = `<div class="big">🔍</div><p>未找到与 "<strong>${escapeHtml(query)}</strong>" 相关的词条</p>`;
+    DOM.main.appendChild(error);
+    return;
+  }
+
+  const list = document.createElement('ul');
+  list.className = 'result-list';
+
+  results.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item.word;
+    if (item.is_link && item.link_target) {
+      const span = document.createElement('span');
+      span.className = 'is-link';
+      span.textContent = `→ ${item.link_target}`;
+      li.appendChild(span);
+    }
+    li.addEventListener('click', () => {
+      DOM.input.value = item.word;
+      if (item.is_link && item.link_target) {
+        doSearch(item.link_target);
+      } else {
+        doSearch(item.word);
+      }
+    });
+    list.appendChild(li);
+  });
+
+  DOM.main.appendChild(list);
+}
+
+function showLoading() {
+  DOM.main.innerHTML = '<div class="loading">查询中</div>';
+}
+
+function showWelcome() {
+  DOM.main.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-icon">📖</div>
+      <h2>牛津高阶英汉双解词典（第10版）</h2>
+      <p>在上方搜索框中输入英文单词，即可查看释义、例句和发音。</p>
+      <div class="shortcuts" id="shortcuts"></div>
+    </div>
+  `;
+  loadShortcuts();
+}
+
+function showError(msg) {
+  DOM.main.innerHTML = `
+    <div class="error-msg">
+      <div class="big">⚠️</div>
+      <p>${escapeHtml(msg)}</p>
+    </div>
+  `;
+}
+
+// ============================================================
+// 发音
+// ============================================================
+
+function playSound(soundFile) {
+  // 移除 sound:// 前缀（如果有）
+  const file = soundFile.replace(/^sound:\/\//, '');
+  // 由于没有实际音频文件，这里留空占位
+  // 如果未来有音频文件，可以解压到 data/sounds/ 目录
+  // 目前只是在点击时尝试播放在线资源
+  console.log('Play sound:', file);
+}
+
+// ============================================================
+// 高亮
+// ============================================================
+
+function highlightEntryWords(word) {
+  // 可以在词条中高亮搜索词
+  const container = DOM.main.querySelector('.entry-container');
+  if (!container || !word) return;
+  try {
+    const h1 = container.querySelector('h1.headword');
+    if (h1) {
+      h1.style.color = '#0071e3';
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// 核心搜索逻辑
+// ============================================================
+
+async function doSearch(query) {
+  query = query.trim();
+  if (!query) {
+    showWelcome();
+    return;
+  }
+
+  currentWord = query;
+  hideSuggestions();
+  showLoading();
+
+  try {
+    // 先试精确查词
+    const entry = await lookupWord(query);
+    showEntry(entry);
+  } catch (e) {
+    // 精确查词失败，尝试搜索
+    try {
+      const results = await searchWords(query);
+      showSearchResults(results, query);
+    } catch (e2) {
+      showError('查询失败: ' + e2.message);
+    }
+  }
+}
+
+// ============================================================
+// URL 参数处理（支持直接访问 ?q=hello）
+// ============================================================
+
+function handleUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  if (q) {
+    DOM.input.value = q;
+    doSearch(q);
+  }
+}
+
+// ============================================================
+// 快捷词
+// ============================================================
+
+async function loadShortcuts() {
+  const container = document.getElementById('shortcuts');
+  if (!container) return;
+  const words = ['hello', 'book', 'study', 'love', 'world', 'time', 'good', 'apple', 'water', 'beautiful'];
+  container.innerHTML = words.map(w =>
+    `<button class="shortcut-btn" onclick="quickSearch('${w}')">${w}</button>`
+  ).join('');
+}
+
+function quickSearch(word) {
+  DOM.input.value = word;
+  doSearch(word);
+  DOM.input.focus();
+}
+
+// ============================================================
+// 工具
+// ============================================================
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============================================================
+// 事件绑定
+// ============================================================
+
+// 输入框输入 - 自动补全
+DOM.input.addEventListener('input', () => {
+  const val = DOM.input.value.trim();
+
+  clearTimeout(suggestTimer);
+  hideSuggestions();
+
+  if (val.length >= 1) {
+    suggestTimer = setTimeout(async () => {
+      const suggestions = await fetchSuggestions(val);
+      showSuggestions(suggestions);
+    }, 150);
+  }
+});
+
+// 输入框回车 - 直接搜索
+DOM.input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = DOM.input.value.trim();
+    hideSuggestions();
+
+    if (selectedSuggestionIndex >= 0) {
+      const items = DOM.suggestions.querySelectorAll('.suggestion-item');
+      if (items[selectedSuggestionIndex]) {
+        const word = items[selectedSuggestionIndex].getAttribute('data-word');
+        DOM.input.value = word;
+        doSearch(word);
+        return;
+      }
+    }
+
+    if (val) {
+      doSearch(val);
+    }
+  }
+
+  // 上下键选择建议
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!DOM.suggestions.classList.contains('active')) return;
+    e.preventDefault();
+    const items = DOM.suggestions.querySelectorAll('.suggestion-item');
+    if (!items.length) return;
+
+    items.forEach(el => el.classList.remove('active'));
+
+    if (e.key === 'ArrowDown') {
+      selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+    } else {
+      selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, 0);
+    }
+
+    items[selectedSuggestionIndex].classList.add('active');
+    DOM.input.value = items[selectedSuggestionIndex].getAttribute('data-word');
+  }
+
+  // Escape 关闭建议
+  if (e.key === 'Escape') {
+    hideSuggestions();
+  }
+});
+
+// 点击外部关闭建议
+document.addEventListener('click', (e) => {
+  if (!DOM.input.contains(e.target) && !DOM.suggestions.contains(e.target)) {
+    hideSuggestions();
+  }
+});
+
+// 浏览器前进/后退
+window.addEventListener('popstate', () => {
+  handleUrlParams();
+});
+
+// ============================================================
+// 初始化
+// ============================================================
+
+handleUrlParams();
+if (!currentWord) {
+  loadShortcuts();
+}
+
+</script>
+</body>
+</html>

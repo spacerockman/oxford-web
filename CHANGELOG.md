@@ -1,0 +1,45 @@
+# 牛津高阶英汉双解词典 Web 版 - 变更日志
+
+> 本项目采用 AI 辅助开发模式，所有变更均在此记录。
+
+## [1.0.0] - 2026-06-17
+
+### 🚀 项目初始化
+
+#### 架构设计
+- **数据层**: MDX 词典文件 → SQLite 数据库（283,816 词条）
+- **服务层**: Python 内置 http.server，零外部依赖
+- **前端层**: 纯 HTML + CSS + JS，保留原词典 oald10.css/oald10.js 样式
+
+#### 已实现功能
+
+##### 后端
+- [x] Python MDX 解析脚本 (`scripts/build_db.py`)
+- [x] HTTP 服务 (`server.py`) - 端口 8310
+- [x] 搜索 API: `GET /api/search?q=word` — 前缀匹配 + 精确优先
+- [x] 查词 API: `GET /api/lookup?word=hello` — 返回完整 HTML
+- [x] 自动补全 API: `GET /api/suggest?q=hel` — 实时建议
+- [x] `entry://` 跨词链接转换
+- [x] `sound://` 发音链接处理
+
+##### 前端
+- [x] 极简搜索界面，粘性顶部搜索栏
+- [x] 实时自动补全下拉列表
+- [x] 保留原词典 oald10.css 排版样式
+- [x] 保留原词典 oald10.js 交互效果
+- [x] 响应式布局，支持移动端
+- [x] URL 参数支持 (`?q=hello`)
+- [x] 快捷示例词按钮
+- [x] 跨词条点击跳转
+
+##### 部署
+- [x] Mac 开机自启动 (launchd plist)
+- [x] 一键安装/卸载脚本 (`start.sh install`)
+
+---
+
+### 技术债务 & 待优化
+- [ ] 音频文件需要从 MDD 资源包解压后才能播放
+- [ ] 支持模糊搜索（当前仅前缀匹配）
+- [ ] 查询性能优化（大数据量下建议加 FTS5 索引）
+- [ ] Docker 容器化部署

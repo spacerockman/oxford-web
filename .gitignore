@@ -1,0 +1,27 @@
+# 牛津词典 Web 版 .gitignore
+
+# 数据库文件（可重新生成）
+*.db
+*.db-wal
+*.db-shm
+
+# 日志
+logs/
+*.log
+
+# 提取的临时数据
+/tmp/oxford_extract/
+/tmp/oxford_db/
+
+# 系统文件
+.DS_Store
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
