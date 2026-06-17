@@ -74,8 +74,8 @@
 ### 🐛 修复
 
 - **Safari 兼容**: SVG favicon 在 Safari 标签页不显示（显示为"1"）
-  - 改用 `data:image/svg+xml;base64,...` 内联方式，确保 Safari 直接识别
-  - 新增 `shortcut icon` 和 `apple-touch-icon` 标签，覆盖更多浏览器场景
+  - 改用 emoji SVG 内联 data URI（`📖`），零外部依赖，所有浏览器原生支持
+  - 尝试过 base64 SVG 外链、shortcut icon 标签等方式均无效，最终 emoji 方案一次解决
   - 涉及文件: `index.html`
 
 ### 📝 文档
