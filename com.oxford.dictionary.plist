@@ -7,7 +7,7 @@
     
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
+        <string>/opt/homebrew/bin/python3</string>
         <string>/Users/xujintao/Documents/oxford-web/server.py</string>
     </array>
     
